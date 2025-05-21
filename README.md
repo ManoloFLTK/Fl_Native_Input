@@ -1,3 +1,5 @@
+**CAUTION**: FLTK addons are experimental as of today and subject to any kind of change.
+
 This repository is an FLTK addon that extends the FLTK library with class `Fl_Native_Input` derived from `Fl_Input`.
 This new class gives FLTK support of right-to-left scripts for text input and edition.
 
