@@ -612,7 +612,7 @@ void Fl_Cairo_Native_Input_Driver::replace_selection(const char *text, int len) 
     }
     undo_->undoat_chars = char_pos;
     undo_->undoyankcut_chars = undo_->undocut_chars;
-    delete[] selection;
+    free(selection);
     widget->set_changed();
     gtk_text_buffer_delete_selection(buffer_, true, true);
   }
@@ -685,7 +685,7 @@ int Fl_Cairo_Native_Input_Driver::copy() {
     char *buf = gtk_text_buffer_get_text(buffer_, &start, &end, false);
     if (kind == SINGLE_LINE) put_back_newlines_(buf);
     Fl::copy(buf, (int)strlen(buf), 1);
-    delete[] buf;
+    free(buf);
     return 1;
   }
   return 0;
@@ -732,7 +732,7 @@ int Fl_Cairo_Native_Input_Driver::handle_keyboard() {
       char *buf = gtk_text_buffer_get_text(buffer_, &start, &end, false);
       if (kind == SINGLE_LINE) put_back_newlines_(buf);
       Fl::copy(buf, (int)strlen(buf), 1);
-      delete[] buf;
+      free(buf);
       replace_selection(NULL, 0);
       return 1;
     } else if (mods == 0 && ((shift && !selected) || !shift)) {
@@ -1004,9 +1004,9 @@ int Fl_Cairo_Native_Input_Driver::handle_mouse(int event) {
       gtk_text_buffer_get_selection_bounds(buffer_, &dnd_iter_position, &dnd_iter_mark);
       dnd_save_focus = widget;
       // drag the data:
-      const char *buf = gtk_text_buffer_get_text(buffer_, &dnd_iter_position, &dnd_iter_mark, false);
+      char *buf = gtk_text_buffer_get_text(buffer_, &dnd_iter_position, &dnd_iter_mark, false);
       Fl::copy(buf, (int)strlen(buf), 0);
-      delete[] buf;
+      free(buf);
       Fl::screen_driver()->dnd(1);
       return 1;
     }
@@ -1095,7 +1095,7 @@ int Fl_Cairo_Native_Input_Driver::char_pos_to_byte_pos_(int char_count) {
     gtk_text_buffer_get_iter_at_offset(buffer_, &last, char_count);
     text = gtk_text_buffer_get_text(buffer_, &first, &last, true);
     int l = (int)strlen(text);
-    delete[] text;
+    free((char*)text);
     return l;
   }
 }
@@ -1349,7 +1349,7 @@ int Fl_Cairo_Native_Input_Driver::apply_undo_() {
     gtk_text_iter_set_offset(&last, b_chars + xlen_chars);
     char *rest = gtk_text_buffer_get_text(buffer_, &where, &last, true);
     memcpy(undo_->undobuffer, rest, xlen);
-    delete[] rest;
+    free(rest);
     gtk_text_buffer_delete(buffer_, &where, &last);
     widget->redraw();
   }
