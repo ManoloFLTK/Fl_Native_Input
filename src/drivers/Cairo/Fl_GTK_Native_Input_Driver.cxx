@@ -314,11 +314,8 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
   gtk_style_context_add_provider(style_context, GTK_STYLE_PROVIDER(css_provider_),
                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   // Set the text color
-  char color_str[8];
-  Fl::get_color(widget->textcolor(), r, g, b);
-  snprintf(color_str, sizeof(color_str), "#%2.2x%2.2x%2.2x", r, g, b);
-  GdkRGBA text_rgba;
-  gdk_rgba_parse(&text_rgba, color_str);
+  Fl::get_color(widget->active() ? widget->textcolor() : fl_inactive(widget->textcolor()), r, g, b);
+  GdkRGBA text_rgba = {r/255.f, g/255.f, b/255.f, 1.f};
   g_object_set(font_size_tag_, "foreground-rgba", &text_rgba, NULL);
 }
 
