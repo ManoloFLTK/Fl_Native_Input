@@ -42,7 +42,7 @@ private:
   GtkAllocation allocation_;
   GtkCssProvider *css_provider_;
   Fl_Scrollbar *v_fl_scrollbar_;
-  Fl_Slider *h_fl_slider_;
+  Fl_Slider *h_fl_slider_;  
   Fl_GTK3_Text_Undo_Action* undo_;
   Fl_GTK3_Text_Undo_Action_List* undo_list_;
   Fl_GTK3_Text_Undo_Action_List* redo_list_;
@@ -56,6 +56,9 @@ private:
   static void adjustment_value_changed_(GtkAdjustment *adj, Fl_Cairo_Native_Input_Driver*);
   static void draw_child(Fl_Widget& widget);
   static void update_child(Fl_Widget& widget);
+#if GTK_MAJOR_VERSION == 4
+  static void delayed_set_style_(Fl_Cairo_Native_Input_Driver *dr);
+#endif
   void text_view_scroll_mark_onscreen_(bool relative_to_mark = false);
   void text_view_scroll_mark_h_(GtkTextIter *before);
   void scan_all_paragraphs_();
@@ -274,13 +277,18 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
 #if GTK_MAJOR_VERSION == 3
   gtk_style_context_add_class(style_context, GTK_STYLE_CLASS_VIEW);
 #endif
-  uchar r,g,b;
+  uchar r,g,b,a;
   char bg_color_str[8];
   Fl::get_color(widget->color(),r,g,b);
   snprintf(bg_color_str, sizeof(bg_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
-  char caret_color_str[8];
+  char caret_color_str[10];
   Fl::get_color(widget->cursor_color(), r, g, b);
-  snprintf(caret_color_str, sizeof(caret_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
+#if GTK_MAJOR_VERSION == 3
+  a = 0xFF;
+#else
+  a = (widget == Fl::focus() ? 0xFF : 0);
+#endif
+  snprintf(caret_color_str, sizeof(caret_color_str), "#%2.2x%2.2x%2.2x%2.2x", r, g, b, a);
   char sel_color_str[8];
   Fl::get_color(widget->selection_color(), r, g, b);
   snprintf(sel_color_str, sizeof(sel_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
@@ -292,19 +300,17 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
            "textview { caret-color: %s; } "
            "textview text { background-color: %s; }"
            "textview text selection { background-color: %s;  color: %s; }",
-           caret_color_str,
-           bg_color_str, //color_str,
-           sel_color_str, text_sel_color_str);
+           caret_color_str, bg_color_str, sel_color_str, text_sel_color_str);
   if (css_provider_) {
     gtk_style_context_remove_provider(style_context, GTK_STYLE_PROVIDER(css_provider_));
     g_object_unref(css_provider_);
   }
   css_provider_ = gtk_css_provider_new();
-  gtk_css_provider_load_from_data(css_provider_, line, -1
-#if GTK_MAJOR_VERSION == 3
-                                  , NULL
+#if GTK_MAJOR_VERSION == 3 || (GTK_MAJOR_VERSION == 4 && GTK_MINOR_VERSION < 12)
+  gtk_css_provider_load_from_data(css_provider_, line, -1 , NULL);
+#else
+  gtk_css_provider_load_from_string(css_provider_, line);
 #endif
-  );
   gtk_style_context_add_provider(style_context, GTK_STYLE_PROVIDER(css_provider_),
                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   // Set the text color
@@ -314,10 +320,6 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
   GdkRGBA text_rgba;
   gdk_rgba_parse(&text_rgba, color_str);
   g_object_set(font_size_tag_, "foreground-rgba", &text_rgba, NULL);
-  GtkTextIter start, end;
-  gtk_text_buffer_get_start_iter(buffer_, &start);
-  gtk_text_buffer_get_end_iter(buffer_, &end);
-  gtk_text_buffer_apply_tag(buffer_, font_size_tag_, &start, &end);
 }
 
 
@@ -494,12 +496,8 @@ void Fl_Cairo_Native_Input_Driver::draw()  {
 #endif
   }
 #if GTK_MAJOR_VERSION == 4
-  gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text_view_), Fl::focus() == widget); // useful?
   GtkSnapshot *snapshot = gtk_snapshot_new();
   gtk_widget_snapshot_child(scrolled_, text_view_, snapshot);
-  /*gtk_snapshot_render_insertion_cursor(snapshot, // seems unneeded for GTK4
-   gtk_widget_get_style_context(text_view_), strong.x, strong.y + widget->textsize()/4,
-   layout, 0, PANGO_DIRECTION_NEUTRAL);*/
   GskRenderNode *rendernode = gtk_snapshot_free_to_node(snapshot);
   gsk_render_node_draw(rendernode, dr->cr());
   gsk_render_node_unref(rendernode);
@@ -756,7 +754,17 @@ void Fl_Cairo_Native_Input_Driver::replace(int from, int to, const char *text, i
 }
 
 
+#if GTK_MAJOR_VERSION == 4
+void Fl_Cairo_Native_Input_Driver::delayed_set_style_(Fl_Cairo_Native_Input_Driver *dr) {
+  dr->set_style_();
+}
+#endif
+
+
 int Fl_Cairo_Native_Input_Driver::handle_focus(int event) {
+#if GTK_MAJOR_VERSION == 4
+  Fl::add_timeout(0, (Fl_Timeout_Handler)delayed_set_style_, this);
+#endif
   widget->damage(FL_DAMAGE_CHILD);
   return 1;
 }
