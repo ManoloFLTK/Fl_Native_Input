@@ -24,8 +24,8 @@
 
 #include <gtk/gtk.h>
 
-#if GTK_MAJOR_VERSION != 4
-# error GTK4 required
+#if GTK_MAJOR_VERSION != 3 && GTK_MAJOR_VERSION != 4
+# error GTK3 or GTK4 required
 #endif
 
 class Fl_GTK3_Text_Undo_Action;
@@ -42,7 +42,7 @@ private:
   GtkAllocation allocation_;
   GtkCssProvider *css_provider_;
   Fl_Scrollbar *v_fl_scrollbar_;
-  Fl_Slider *h_fl_slider_;  
+  Fl_Slider *h_fl_slider_;
   Fl_GTK3_Text_Undo_Action* undo_;
   Fl_GTK3_Text_Undo_Action_List* undo_list_;
   Fl_GTK3_Text_Undo_Action_List* redo_list_;
@@ -277,18 +277,18 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
 #if GTK_MAJOR_VERSION == 3
   gtk_style_context_add_class(style_context, GTK_STYLE_CLASS_VIEW);
 #endif
-  uchar r,g,b,a;
+  uchar r,g,b;
   char bg_color_str[8];
   Fl::get_color(widget->color(),r,g,b);
   snprintf(bg_color_str, sizeof(bg_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
   char caret_color_str[10];
   Fl::get_color(widget->cursor_color(), r, g, b);
 #if GTK_MAJOR_VERSION == 3
-  a = 0xFF;
+  snprintf(caret_color_str, sizeof(caret_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
 #else
-  a = (widget == Fl::focus() ? 0xFF : 0);
-#endif
+  uchar a = (widget == Fl::focus() ? 0xFF : 0);
   snprintf(caret_color_str, sizeof(caret_color_str), "#%2.2x%2.2x%2.2x%2.2x", r, g, b, a);
+#endif
   char sel_color_str[8];
   Fl::get_color(widget->selection_color(), r, g, b);
   snprintf(sel_color_str, sizeof(sel_color_str), "#%2.2x%2.2x%2.2x", r, g, b);
@@ -743,8 +743,6 @@ void Fl_Cairo_Native_Input_Driver::replace_selection(const char *text, int len) 
     else text_view_scroll_mark_onscreen_();
   }
   widget->redraw();
-//while (g_main_context_pending(g_main_context_default()))
-   g_main_context_iteration(g_main_context_default(), false);
 }
 
 
