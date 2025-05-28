@@ -387,6 +387,10 @@ void Fl_Cairo_Native_Input_Driver::show_widget()  {
     scrolled_ = gtk_scrolled_window_new();
     if (h_adjust_) gtk_scrolled_window_set_hadjustment(GTK_SCROLLED_WINDOW(scrolled_), h_adjust_);
     if (v_adjust_) gtk_scrolled_window_set_vadjustment(GTK_SCROLLED_WINDOW(scrolled_), v_adjust_);
+    GtkWidget *scroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scrolled_));
+    gtk_widget_set_visible(scroll, false);
+    scroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scrolled_));
+    gtk_widget_set_visible(scroll, false);
 #endif
     text_view_ = gtk_text_view_new();
 #if GTK_MAJOR_VERSION == 4
