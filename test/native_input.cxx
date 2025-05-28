@@ -9,6 +9,8 @@
 #include <FL/Fl_Copy_Surface.H>
 #include <FL/Fl_Image_Surface.H>
 
+#include <FL/platform.H>
+
 #include <stdio.h>
 
 Fl_Native_Multiline_Input *multiple;
@@ -125,6 +127,9 @@ void rgb_cb(Fl_Widget *) {
   Fl_Box *box = new Fl_Box(0,0,rgb->w(), rgb->h(),0);
   box->image(rgb);
   win->end();
+#ifdef FLTK_USE_WAYLAND
+  if (fl_wl_display()) win->border(0); // because libdecor doesn't accept GTK4
+#endif
   win->show();
 }
 
@@ -293,6 +298,9 @@ int main(int argc, char **argv) {
   window->callback(delete_win);
   //box->hide();
   //box2->hide();
+#ifdef FLTK_USE_WAYLAND
+  if (fl_wl_display()) window->border(0); // because libdecor doesn't accept GTK4
+#endif
   window->show();
   int n = 1;
   while (n < argc) {
