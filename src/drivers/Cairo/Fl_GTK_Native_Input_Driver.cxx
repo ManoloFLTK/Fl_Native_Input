@@ -948,7 +948,7 @@ int Fl_Cairo_Native_Input_Driver::handle_keyboard() {
     else
       gtk_text_view_backward_display_line(GTK_TEXT_VIEW(text_view_), &new_where);
     gtk_text_view_get_cursor_locations(GTK_TEXT_VIEW(text_view_), &new_where, &strong, NULL);
-    gtk_text_view_get_iter_at_location(GTK_TEXT_VIEW(text_view_), &new_where, insert_offset_, strong.y);
+    gtk_text_view_get_iter_at_location(GTK_TEXT_VIEW(text_view_), &new_where, insert_offset_, strong.y+1);
     bool relative_to_mark = false;
     if (Fl::event_state() & FL_SHIFT) {
       if (Fl::event_key() == FL_Down) {
