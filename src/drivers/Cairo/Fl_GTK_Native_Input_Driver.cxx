@@ -181,6 +181,11 @@ Fl_Cairo_Native_Input_Driver::~Fl_Cairo_Native_Input_Driver() {
   delete[] text_before_show_;
   if (text_view_) {
 #if GTK_MAJOR_VERSION == 3
+    if (css_provider_) {
+      GtkStyleContext *style_context = gtk_widget_get_style_context(text_view_);
+      gtk_style_context_remove_provider(style_context, GTK_STYLE_PROVIDER(css_provider_));
+      g_object_unref(css_provider_);
+    }
     gtk_widget_destroy(window_);
 #else
     gtk_window_destroy((GtkWindow*)window_);
@@ -310,12 +315,12 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
            class_name_part_, caret_color_str,
            class_name_part_, bg_color_str,
            class_name_part_, sel_color_str, text_sel_color_str);
-  if (css_provider_) {
 #if GTK_MAJOR_VERSION == 3
+  if (css_provider_) {
     gtk_style_context_remove_provider(style_context, GTK_STYLE_PROVIDER(css_provider_));
-#endif
     g_object_unref(css_provider_);
   }
+#endif
   css_provider_ = gtk_css_provider_new();
 #if GTK_MAJOR_VERSION == 3 || (GTK_MAJOR_VERSION == 4 && GTK_MINOR_VERSION < 12)
   gtk_css_provider_load_from_data(css_provider_, line, -1 , NULL);
@@ -328,6 +333,8 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
 #else
   gtk_style_context_add_provider_for_display(gdk_display_get_default(),
           GTK_STYLE_PROVIDER(css_provider_), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  g_object_unref(css_provider_);
+  css_provider_ = NULL;
 #endif
   // Set the text color
   Fl::get_color(widget->active() ? widget->textcolor() : fl_inactive(widget->textcolor()), r, g, b);
