@@ -524,7 +524,9 @@ void Fl_Cairo_Native_Input_Driver::draw()  {
   }
 #if GTK_MAJOR_VERSION == 4
   GtkSnapshot *snapshot = gtk_snapshot_new();
+  gtk_widget_set_visible(window_, true);
   gtk_widget_snapshot_child(scrolled_, text_view_, snapshot);
+  gtk_widget_set_visible(window_, false);
   GskRenderNode *rendernode = gtk_snapshot_free_to_node(snapshot);
   gsk_render_node_draw(rendernode, dr->cr());
   gsk_render_node_unref(rendernode);
