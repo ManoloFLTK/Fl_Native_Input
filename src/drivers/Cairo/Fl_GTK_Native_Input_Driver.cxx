@@ -198,22 +198,6 @@ Fl_Cairo_Native_Input_Driver::~Fl_Cairo_Native_Input_Driver() {
 
 void Fl_Cairo_Native_Input_Driver::textbuffer_changed_(GtkTextBuffer *buffer_, Fl_Cairo_Native_Input_Driver *dr) {
   if (dr->widget->changed()) {
-#if GTK_MAJOR_VERSION == 4
-    GtkTextIter before;
-    gtk_text_buffer_get_selection_bounds(buffer_, &before, NULL);
-    // this trick forces the change to be visible immediately; there must be something better
-    gboolean moved = gtk_text_iter_forward_cursor_position(&before);
-    if (moved) {
-      gtk_text_buffer_place_cursor(buffer_, &before);
-      gtk_text_iter_backward_cursor_position(&before);
-      gtk_text_buffer_place_cursor(buffer_, &before);
-    } else {
-      gtk_text_iter_backward_cursor_position(&before);
-      gtk_text_buffer_place_cursor(buffer_, &before);
-      gtk_text_iter_forward_cursor_position(&before);
-      gtk_text_buffer_place_cursor(buffer_, &before);
-    }
-#endif
     if (dr->widget->when() & FL_WHEN_CHANGED) {
       dr->widget->do_callback(FL_REASON_CHANGED);
     }
