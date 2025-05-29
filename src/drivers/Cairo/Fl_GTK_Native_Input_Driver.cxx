@@ -419,7 +419,6 @@ void Fl_Cairo_Native_Input_Driver::show_widget()  {
     gtk_widget_show_all(window_);
 #else
     gtk_widget_realize(window_);
-    gtk_widget_set_visible(window_, true);
 #endif
 
     
@@ -510,7 +509,6 @@ void Fl_Cairo_Native_Input_Driver::draw()  {
   if (Fl::focus() != widget) {
     gtk_text_buffer_select_range(buffer_, &insert, &sel_end);
   } else if (!selection_active) { // draw insertion cursor
-    //GdkRectangle strong;
     gtk_text_view_get_cursor_locations(GTK_TEXT_VIEW(text_view_), NULL, &strong, NULL);
     gtk_text_view_buffer_to_window_coords(GTK_TEXT_VIEW(text_view_),
                                           GTK_TEXT_WINDOW_TEXT, strong.x, strong.y, &strong.x, &strong.y);
