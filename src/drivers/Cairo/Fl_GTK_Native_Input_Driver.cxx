@@ -317,6 +317,7 @@ void Fl_Cairo_Native_Input_Driver::set_style_()  {
 #else
   gtk_style_context_add_provider_for_display(gdk_display_get_default(),
           GTK_STYLE_PROVIDER(css_provider_), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  //TODO shd we use gtk_style_context_remove_provider_for_display() ?
   g_object_unref(css_provider_);
   css_provider_ = NULL;
 #endif
